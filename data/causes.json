@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "_note": "کارت‌های همیاری. راهنما: data/README.md. فقط مقدارهای \"\" را پر کنید.",
+  "causes": [
+    {
+      "id": "hoseiniyeh-masjed-homag",
+      "title": "مسجد و حسینیه میروئیه هماگ بالا",
+      "bank": {
+        "bankName": "گردشگری",
+        "ownerName": "حسینیه و مسجد میروئیه هماگ بالا",
+        "cardNumber": "5054161002746513",
+        "iban": "IR270640176109910166242001"
+      },
+      "accounts": [],
+      "online": false,
+      "description": "کمک به ساخت و ساز و بازسازی ابنیه و تهیه تجهیزات آشپزخانه و سایر موارد مرتبط با حسینیه"
+    },
+    {
+      "id": "jihadi-homag",
+      "title": "گروه جهادی هماگ بالا",
+      "bank": {
+        "bankName": "گردشگری",
+        "ownerName": "گروه جهادی آبادگران هماگ بالا",
+        "cardNumber": "5054161008213849",
+        "iban": "IR660640176199660166242001"
+      },
+      "accounts": [],
+      "online": false,
+      "description": "گروه جهادی آبادگران هماگ بالا (رتبه نخست محرومیت زدایی در استان هرمزگان در سال 1401) در زمینه ساخت و ساز مسجد و حسینیه و همچنین جمع آوری کمک های مردمی در جهت کمک به نیازمندان روستا تشکیل گردید."
+    },
+    {
+      "id": "multi",
+      "title": "امامزاده شاه صفی الله (ع)",
+      "accounts": [
+        {
+          "id": "civil",
+          "title": "عمرانی",
+          "bank": {
+            "bankName": "",
+            "ownerName": "",
+            "cardNumber": "",
+            "iban": ""
+          },
+          "online": false
+        },
+        {
+          "id": "culture",
+          "title": "فرهنگی",
+          "bank": {
+            "bankName": "",
+            "ownerName": "",
+            "cardNumber": "",
+            "iban": ""
+          },
+          "online": false
+        },
+        {
+          "id": "other",
+          "title": "سایر",
+          "bank": {
+            "bankName": "",
+            "ownerName": "",
+            "cardNumber": "",
+            "iban": ""
+          },
+          "online": false
+        }
+      ]
+    }
+  ]
+}

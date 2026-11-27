@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "causes": [
+    {
+      "id": "fx-hoseiniyeh",
+      "title": "حسینیهٔ نمونه",
+      "description": "توضیح آزمایشی که در جستجو نباید بیاید",
+      "intro": "معرفی بلند آزمایشی برای حسینیه",
+      "image": "causes/fx.webp",
+      "order": 2,
+      "bank": { "bankName": "ملی", "ownerName": "صاحب نمونه", "cardNumber": "6037997112345678", "iban": "IR062010000000123456789012" },
+      "channels": { "telegram": "https://t.me/fxhoseini" },
+      "accounts": [],
+      "online": false
+    },
+    {
+      "id": "fx-jihadi",
+      "title": "گروه جهادی نمونه",
+      "description": "کارت آزمایشی دوم",
+      "order": 3,
+      "bank": { "bankName": "ملی", "ownerName": "گروه نمونه", "cardNumber": "6037991111111111", "iban": "" },
+      "accounts": [],
+      "online": false
+    },
+    {
+      "id": "fx-multi",
+      "title": "امامزادهٔ نمونه",
+      "order": 1,
+      "accounts": [
+        { "id": "civil", "title": "عمرانی", "bank": { "bankName": "", "ownerName": "", "cardNumber": "", "iban": "" }, "online": false },
+        { "id": "culture", "title": "فرهنگی", "bank": { "bankName": "", "ownerName": "", "cardNumber": "", "iban": "" }, "online": false }
+      ],
+      "online": false
+    },
+    {
+      "id": "fx-hidden",
+      "title": "کارت غیرفعال نمونه",
+      "enabled": false,
+      "accounts": [],
+      "online": false
+    }
+  ]
+}
