@@ -72,7 +72,8 @@
         "toMonth": 1,
         "toDay": 12
       },
-      "priority": 20
+      "priority": 1,
+      "enabled": true
     },
     {
       "id": "fatemiyeh",
@@ -97,7 +98,8 @@
         "toMonth": 2,
         "toDay": 20
       },
-      "priority": 15
+      "priority": 15,
+      "enabled": true
     },
     {
       "id": "reza-martyr",
