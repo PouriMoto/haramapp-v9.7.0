@@ -8,6 +8,10 @@
   ],
   "categories": [
     {
+      "id": "mother-day",
+      "title": "روز مادر"
+    },
+    {
       "id": "fatemiyeh",
       "title": "فاطمیه",
       "order": 1
@@ -35,6 +39,24 @@
   ],
   "hijriOffsetDays": 0,
   "occasions": [
+    {
+      "id": "mother-day",
+      "title": "روز مادر",
+      "enabled": true,
+      "priority": 10,
+      "category": "mother-day",
+      "hijri": {
+        "fromMonth": 6,
+        "fromDay": 18,
+        "toDay": 20
+      },
+      "ranges": [
+        {
+          "from": "2026-11-28",
+          "to": "2026-11-30"
+        }
+      ]
+    },
     {
       "id": "qadr",
       "title": "شب‌های قدر",
