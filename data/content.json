@@ -9,6 +9,10 @@
   ],
   "categories": [
     {
+      "id": "father-day",
+      "title": "روز پدر - ولادت حضرت علی (ع)"
+    },
+    {
       "id": "mother-day",
       "title": "روز مادر",
       "order": 1
@@ -40,6 +44,19 @@
   ],
   "hijriOffsetDays": 0,
   "occasions": [
+    {
+      "id": "father-day",
+      "title": "روز پدر - ولادت حضرت علی (ع)",
+      "enabled": true,
+      "text": "پدر بار عالم را به دوش می کشد : کلیک کنید",
+      "category": "father-day",
+      "ranges": [
+        {
+          "from": "2026-12-20",
+          "to": "2026-12-22"
+        }
+      ]
+    },
     {
       "id": "mother-day",
       "title": "روز مادر",
@@ -369,6 +386,14 @@
       ]
     },
     {
+      "title": "وقتی که نه زمین بود و نه زمان - ولادت حضرت زهرا (س)",
+      "aparat": "mko0jb0",
+      "categories": [
+        "mother-day"
+      ],
+      "poster": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTwzqHAUW1Yxy3AMzRfgVwdpYGn7D7AXwyoyD3HRMiFrw&s=10"
+    },
+    {
       "title": "صلوات خاصه امام رضا (ع)",
       "aparat": "ckn3o4e",
       "poster": "https://static.ahlolbait.com/files/ahlolbait/old/12/image/salavate-khaseh.jpg",
@@ -403,12 +428,28 @@
   ],
   "banners": [
     {
+      "id": "banner-father-day",
+      "kind": "campaign",
+      "placement": "both",
+      "enabled": true,
+      "title": "روز پدر",
+      "sponsor": "زیارت امین الله",
+      "image": "https://api2.zoomit.ir/media/fathers-day-second-step-textured-storybook-6955107e4b63079a8502bef2?w=1920&q=75",
+      "alt": "پدر پسر را به دوش دارد",
+      "target": {
+        "type": "prayer",
+        "id": "ziyarat-aminollah"
+      },
+      "startsAt": "2026-12-15",
+      "endsAt": "2026-12-22"
+    },
+    {
       "id": "banner-mother-day",
       "kind": "campaign",
       "placement": "both",
       "enabled": true,
       "title": "روز مادر",
-      "sponsor": "مادر",
+      "sponsor": "زیارت حضرت زهرا (س)",
       "image": "https://static.cdn.asset.aparat.com/avt/74335022-2340-l__9295.jpg?width=900&quality=90&secret=7Bss_movC-CQc066OeLmWA",
       "alt": "کودک در آغوش مادر",
       "target": {
@@ -416,7 +457,8 @@
         "id": "ziyarat-zahra"
       },
       "startsAt": "2026-11-27",
-      "endsAt": "2026-11-30"
+      "endsAt": "2026-11-30",
+      "text": "فدای قدم های مادر"
     },
     {
       "kind": "campaign",
