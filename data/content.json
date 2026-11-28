@@ -4,17 +4,18 @@
     "kashoob.com",
     "music-fa.ir",
     "dls.musics-fa.com",
-    "dlw.webahang.ir"
+    "dlw.webahang.ir",
+    "evanmu.musitraf.ir"
   ],
   "categories": [
     {
       "id": "mother-day",
-      "title": "روز مادر"
+      "title": "روز مادر",
+      "order": 1
     },
     {
       "id": "fatemiyeh",
-      "title": "فاطمیه",
-      "order": 1
+      "title": "فاطمیه"
     },
     {
       "id": "muharram",
@@ -265,6 +266,33 @@
   ],
   "music": [
     {
+      "title": "مولودی میلاد حضرت زهرا (س)",
+      "src": "https://evanmu.musitraf.ir/music/1403/09/27/rasoli%20-%20molodi-fateme01.mp3?src=evanmu",
+      "artist": "مهدی رسولی",
+      "categories": [
+        "mother-day"
+      ],
+      "cover": "https://bahariran.com/wp-content/uploads/2018/03/image003.png"
+    },
+    {
+      "title": "وقتی برای اولین بار ملائکه مدحشو گفتن - ولادت حضرت زهرا (س)",
+      "artist": "مهدی رسولی",
+      "categories": [
+        "mother-day"
+      ],
+      "src": "https://evanmu.musitraf.ir/music/1403/09/27/adab%20-%20dare.mp3?src=evanmu",
+      "cover": "https://bahariran.com/wp-content/uploads/2018/03/image003.png"
+    },
+    {
+      "title": "مولودی ولادت حضرت فاطمه الزهرا  (س)",
+      "artist": "سید طالع باکویی",
+      "src": "https://evanmu.musitraf.ir/music/1400/10/ya%20zahra.mp3?src=evanmu",
+      "cover": "https://bahariran.com/wp-content/uploads/2018/03/image003.png",
+      "categories": [
+        "mother-day"
+      ]
+    },
+    {
       "title": "ای صفای قلب زارم",
       "artist": "حسین طاهری",
       "src": "https://mir1.kashoob.com/dl/audio/202508/enc_17559758466381176623310.mp3?name=%D8%A7%DB%8C%20%D8%B5%D9%81%D8%A7%DB%8C%20%D9%82%D9%84%D8%A8%20%D8%B2%D8%A7%D8%B1%D9%85",
@@ -382,10 +410,10 @@
       "image": "https://static.cdn.asset.aparat.com/avt/74335022-2340-l__9295.jpg?width=900&quality=90&secret=7Bss_movC-CQc066OeLmWA",
       "alt": "کودک در آغوش مادر",
       "target": {
-        "type": "occasion",
-        "id": "mother-day"
+        "type": "prayer",
+        "id": "ziyarat-zahra"
       },
-      "startsAt": "2026-11-28",
+      "startsAt": "2026-11-27",
       "endsAt": "2026-11-30"
     },
     {
