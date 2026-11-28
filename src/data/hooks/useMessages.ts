@@ -19,9 +19,12 @@ export function usePostMessage() {
   return useMutation({
     // اعتبارسنجی کلاینت فقط برای UX؛ سرور دوباره بررسی می‌کند
     mutationFn: (i: NewMessage) => {
-      if (!i.website) validateMessage(i)
+      if (!i.website && !i.presetId) validateMessage(i)
       return getApi().postMessage(i)
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['stats'] }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['stats'] })
+      void qc.invalidateQueries({ queryKey: ['messages'] }) // جملهٔ آماده فوراً در فهرست می‌آید
+    },
   })
 }

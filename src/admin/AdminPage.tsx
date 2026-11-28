@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import './admin.css'
+import { env } from '../config/env'
 import { Dashboard } from './Dashboard'
-import { createGithub, type Github } from './github'
+import { createGithub, type AdminBackend } from './github'
+import { createLocalBackend } from './local'
 import { clearVault, decryptToken, encryptToken, loadVault, saveVault, type VaultMeta } from './vault'
 
 const IDLE_MS = 15 * 60 * 1000
@@ -12,6 +14,14 @@ export function AdminPage() {
   const [token, setToken] = useState<string | null>(null)
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
+  // فقط در `npm run dev`: اگر سرور محلی پاسخ دهد، توکن/رمز لازم نیست و فایل‌های همین ریپو ویرایش می‌شوند
+  const [local, setLocal] = useState<AdminBackend | null | 'checking'>(env.isDev ? 'checking' : null)
+  useEffect(() => {
+    if (!env.isDev) return
+    let on = true
+    void createLocalBackend().then((b) => { if (on) setLocal(b) })
+    return () => { on = false }
+  }, [])
 
   // صفحهٔ مدیریت نباید ایندکس شود
   useEffect(() => {
@@ -38,7 +48,7 @@ export function AdminPage() {
     return () => { window.clearTimeout(timer.current); evs.forEach((e) => window.removeEventListener(e, reset)) }
   }, [token, lock])
 
-  const gh: Github | null = useMemo(
+  const gh: AdminBackend | null = useMemo(
     () => (token && vault ? createGithub(vault.meta, token) : null),
     [token, vault],
   )
@@ -79,6 +89,9 @@ export function AdminPage() {
     catch (x) { setErr(x instanceof Error ? x.message : 'باز نشد') }
     finally { setBusy(false) }
   }
+
+  if (local === 'checking') return <main className="adm" dir="rtl"><p className="adm-note" role="status">در حال اتصال به سرور محلی…</p></main>
+  if (local) return <main className="adm" dir="rtl"><Dashboard gh={local} /></main>
 
   return (
     <main className="adm" dir="rtl">

@@ -1,4 +1,4 @@
-# Haram Razavi (حرم رضوی)
+# Haram Eshgh (حرم عشق)
 
 A fast, installable (PWA), right-to-left Persian web app with Imam Reza (AS) prayers and ziyarat texts + audio, spiritual music, videos, a "heart-to-heart" message wall, a salavat counter, a personal dhikr counter, and charity ("همیاری") cards with direct bank details and optional online payment.
 

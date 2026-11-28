@@ -1,6 +1,8 @@
 import { IconCheck } from '../../components/icons'
 import { useEffect, useId, useState, type FormEvent } from 'react'
 import { Sheet } from '../../components/Sheet'
+import { toast } from '../../components/toast'
+import { usePresets } from '../../content/hooks'
 import { ApiError, ValidationError } from '../../data/errors'
 import { usePostMessage } from '../../data/hooks/useMessages'
 
@@ -9,6 +11,7 @@ const MAX = 1000
 export function MessageSheet({ open, onClose }: { open: boolean; onClose(): void }) {
   const uid = useId()
   const post = usePostMessage()
+  const presets = usePresets().data ?? []
   const [message, setMessage] = useState('')
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
@@ -20,9 +23,15 @@ export function MessageSheet({ open, onClose }: { open: boolean; onClose(): void
   const submit = (e: FormEvent) => {
     e.preventDefault()
     post.mutate({ message, name, phone, website }, {
-      onSuccess: () => { setMessage(''); setName(''); setPhone('') },
+      onSuccess: () => { setMessage(''); setName(''); setPhone(''); toast('درد و دل شما ثبت شد؛ پس از تأیید مدیر نمایش داده می‌شود', 'ok', 4000) },
     })
   }
+
+  // جملهٔ آماده: با یک لمس ارسال و فوراً منتشر می‌شود (متن سمت سرور است)
+  const sendPreset = (presetId: string) => post.mutate({ message: '', presetId, name, website }, {
+    onSuccess: () => { setName(''); toast('درد و دل شما ثبت شد و در لیست نمایش داده شد 🌹', 'ok', 3500); onClose() },
+    onError: () => toast('ارسال انجام نشد؛ دوباره تلاش کنید', 'warn'),
+  })
 
   const err = post.error
   const fieldErr = (f: string) => (err instanceof ValidationError && err.field === f ? err.message : null)
@@ -35,29 +44,46 @@ export function MessageSheet({ open, onClose }: { open: boolean; onClose(): void
           <div className="sheet__done" role="status">
             <span className="sheet__check"><IconCheck size={28} aria-hidden /></span>
             <p><strong>درد و دل شما ثبت شد.</strong></p>
-            <p className="muted">پس از بررسی و تأیید، در لیست نمایش داده می‌شود.</p>
+            <p className="muted">{post.data?.status === 'published' ? 'در لیست درد و دل‌ها نمایش داده شد.' : 'پس از بررسی و تأیید، در لیست نمایش داده می‌شود.'}</p>
             <button type="button" className="btn" onClick={onClose}>بستن</button>
           </div>
         ) : (
           <form onSubmit={submit} noValidate>
             <label htmlFor={`${uid}-m`}>آنچه در دل دارید</label>
-            <textarea id={`${uid}-m`} value={message} onChange={(e) => setMessage(e.target.value)} rows={5} maxLength={MAX} required placeholder="بنویسید…" aria-invalid={!!fieldErr('message')} />
+            <textarea id={`${uid}-m`} value={message} onChange={(e) => setMessage(e.target.value)} rows={5} maxLength={MAX} placeholder="بنویسید…" aria-invalid={!!fieldErr('message')} />
             <div className="sheet__row"><span className="field-err" role="alert">{fieldErr('message')}</span><span className="muted">{message.length.toLocaleString('fa-IR')}/{MAX.toLocaleString('fa-IR')}</span></div>
+            <span className="muted">متن آزاد پس از تأیید مدیر نمایش داده می‌شود.</span>
 
-            <label htmlFor={`${uid}-n`}>نام (اختیاری)</label>
-            <input id={`${uid}-n`} value={name} onChange={(e) => setName(e.target.value)} maxLength={60} autoComplete="given-name" />
-            <span className="field-err" role="alert">{fieldErr('name')}</span>
-
-            <label htmlFor={`${uid}-p`}>شمارهٔ موبایل (اختیاری)</label>
-            <input id={`${uid}-p`} value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="numeric" autoComplete="tel" dir="ltr" placeholder="09…" aria-describedby={`${uid}-ph`} />
+            <div className="sheet__pair">
+              <div className="sheet__col">
+                <label htmlFor={`${uid}-n`}>نام (اختیاری)</label>
+                <input id={`${uid}-n`} value={name} onChange={(e) => setName(e.target.value)} maxLength={60} autoComplete="given-name" />
+                <span className="field-err" role="alert">{fieldErr('name')}</span>
+              </div>
+              <div className="sheet__col">
+                <label htmlFor={`${uid}-p`}>موبایل (اختیاری)</label>
+                <input id={`${uid}-p`} value={phone} onChange={(e) => setPhone(e.target.value)} inputMode="numeric" autoComplete="tel" dir="ltr" placeholder="09…" aria-describedby={`${uid}-ph`} />
+                <span className="field-err" role="alert">{fieldErr('phone')}</span>
+              </div>
+            </div>
             <span id={`${uid}-ph`} className="muted">شماره هرگز نمایش داده نمی‌شود.</span>
-            <span className="field-err" role="alert">{fieldErr('phone')}</span>
 
             {/* تله ضد ربات: برای کاربر نامرئی */}
             <input className="hp" tabIndex={-1} autoComplete="off" aria-hidden name="website" value={website} onChange={(e) => setWebsite(e.target.value)} />
 
             {generalErr && <p className="field-err" role="alert">{generalErr}</p>}
-            <button type="submit" className="btn btn--block" disabled={post.isPending}>{post.isPending ? 'در حال ارسال…' : 'ارسال'}</button>
+            <button type="submit" className="btn btn--block" disabled={post.isPending}>{post.isPending ? 'در حال ارسال…' : 'ارسال متن'}</button>
+
+            {presets.length > 0 && (
+              <>
+                <p className="sheet__sub" id={`${uid}-pr`}>یا با یک لمس بگویید (با همان نامِ بالا، فوراً منتشر می‌شود)</p>
+                <div className="chips preset-chips" role="group" aria-labelledby={`${uid}-pr`}>
+                  {presets.map((p) => (
+                    <button key={p.id} type="button" className="chip preset-chip" disabled={post.isPending} onClick={() => sendPreset(p.id)}>{p.text}</button>
+                  ))}
+                </div>
+              </>
+            )}
           </form>
         )}
     </Sheet>

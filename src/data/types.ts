@@ -3,6 +3,19 @@ export interface Message {
   name: string
   message: string
   createdAt: string // ISO
+  /** 'preset' = جملهٔ آمادهٔ سرور؛ 'text' = متن آزاد (تأییدشده) */
+  kind?: 'preset' | 'text'
+}
+
+/** نتیجهٔ ثبت: جملهٔ آماده فوراً منتشر می‌شود، متن آزاد در انتظار تأیید مدیر می‌ماند */
+export interface PostMessageResult {
+  status: 'published' | 'pending'
+}
+
+/** جملهٔ آمادهٔ درد و دل (data/presets.json) */
+export interface MessagePreset {
+  id: string
+  text: string
 }
 
 export interface Page<T> {
@@ -19,6 +32,8 @@ export interface NewMessage {
   name?: string
   phone?: string
   message: string
+  /** اگر پر باشد، متن سمت سرور از روی این شناسه گذاشته می‌شود و message نادیده گرفته می‌شود */
+  presetId?: string
   website?: string // honeypot: باید خالی بماند
 }
 

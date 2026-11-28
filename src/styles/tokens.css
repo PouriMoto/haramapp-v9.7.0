@@ -5,6 +5,10 @@
   --primary-dark: #005662;
   --secondary: #d4af37;
   --secondary-light: #fdf5e6;
+  /* نام کاربر در درد و دل: طلایی (متن تیره‌تر برای خوانایی روی زمینهٔ روشن) */
+  --gold: #d4af37;
+  --gold-ink: #8a6d0b;
+  --gold-soft: #fff8dc;
 
   --bg: #faf8f5;
   --surface: #ffffff;

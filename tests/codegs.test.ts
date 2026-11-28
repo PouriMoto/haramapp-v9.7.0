@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 type Row = unknown[]
 const HEADERS: Record<string, string[]> = {
-  Messages: ['id', 'createdAt', 'name', 'phone', 'message', 'approved', 'clientId'],
+  Messages: ['id', 'createdAt', 'name', 'phone', 'message', 'approved', 'clientId', 'kind'],
   Causes: ['id', 'title', 'description', 'accounts'],
   Payments: ['id', 'createdAt', 'clientId', 'causeId', 'accountId', 'amount', 'status', 'authority', 'refId'],
 }
@@ -194,5 +194,61 @@ describe('Code.gs', () => {
     const c = f.p({ action: 'addCause', adminToken: 'adm', title: 'الف', online: true }).data
     expect(f.p({ action: 'startPayment', clientId: CID, causeId: c.id, amountToman: 50000 }).ok).toBe(false)
     expect(f.data.Payments[0][6]).toBe('failed')
+  })
+
+  describe('جمله‌های آماده و تأیید مدیر', () => {
+    it('presetId: متن از سرور، فوراً منتشر، متن کلاینت نادیده', () => {
+      const r = e.p({ action: 'postMessage', clientId: CID, presetId: 'salam', message: 'متن جعلی', name: 'علی' })
+      expect(r.data).toEqual({ status: 'published' })
+      const items = e.g({ action: 'messages' }).data.items
+      expect(items).toHaveLength(1)
+      const salam = (JSON.parse(readFileSync('data/presets.json', 'utf8')).presets as { id: string; text: string }[]).find((p) => p.id === 'salam')
+      expect(items[0]).toMatchObject({ name: 'علی', message: salam?.text, kind: 'preset' })
+    })
+    it('presetId ناشناخته رد می‌شود', () => {
+      expect(e.p({ action: 'postMessage', clientId: CID, presetId: 'nope' }).code).toBe('validation')
+      expect(e.p({ action: 'postMessage', clientId: CID, presetId: 'constructor' }).code).toBe('validation')
+      expect(e.data.Messages).toHaveLength(0)
+    })
+    it('متن آزاد pending می‌ماند', () => {
+      expect(e.p({ action: 'postMessage', clientId: CID, message: 'سلام آقا' }).data).toEqual({ status: 'pending' })
+      expect(e.g({ action: 'messages' }).data.items).toHaveLength(0)
+    })
+    it('جمله‌های Code.gs دقیقاً با data/presets.json یکی است', () => {
+      const file = JSON.parse(readFileSync('data/presets.json', 'utf8')).presets as { id: string; text: string }[]
+      for (const p of file) {
+        const a = makeEnv({})
+        a.p({ action: 'postMessage', clientId: CID, presetId: p.id })
+        expect(a.g({ action: 'messages' }).data.items[0].message, p.id).toBe(p.text)
+      }
+    })
+    it('adminMessages بدون/با توکن غلط رد؛ با توکن درست فقط pending و بدون phone', () => {
+      e.p({ action: 'postMessage', clientId: CID, message: 'دردودل من', phone: '09123456789' })
+      expect(e.p({ action: 'adminMessages' }).code).toBe('server')
+      expect(e.p({ action: 'adminMessages', adminToken: 'x' }).code).toBe('server')
+      const r = e.p({ action: 'adminMessages', adminToken: 'adm' })
+      expect(r.data.total).toBe(1)
+      expect(JSON.stringify(r.data)).not.toContain('0912')
+    })
+    it('ADMIN_TOKEN تنظیم‌نشده = همه رد', () => {
+      const n = makeEnv({})
+      expect(n.p({ action: 'adminMessages', adminToken: '' }).code).toBe('server')
+    })
+    it('تأیید منتشر می‌کند، رد پنهان می‌ماند، دوباره بررسی ممکن نیست', () => {
+      e.p({ action: 'postMessage', clientId: 'client-0001-aaaa', message: 'پیام یک' })
+      e.p({ action: 'postMessage', clientId: 'client-0002-aaaa', message: 'پیام دو' })
+      const [a, b] = e.p({ action: 'adminMessages', adminToken: 'adm' }).data.items as { id: string }[]
+      expect(e.p({ action: 'adminModerate', adminToken: 'adm', id: a.id, decision: 'approve' }).ok).toBe(true)
+      expect(e.p({ action: 'adminModerate', adminToken: 'adm', id: b.id, decision: 'reject' }).ok).toBe(true)
+      expect(e.g({ action: 'messages' }).data.items.map((x: { message: string }) => x.message)).toEqual(['پیام یک'])
+      expect(e.p({ action: 'adminMessages', adminToken: 'adm' }).data.total).toBe(0)
+      expect(e.p({ action: 'adminModerate', adminToken: 'adm', id: a.id, decision: 'reject' }).code).toBe('validation')
+      expect(e.p({ action: 'adminModerate', adminToken: 'adm', id: 'zzz', decision: 'approve' }).code).toBe('not_found')
+      expect(e.p({ action: 'adminModerate', adminToken: 'adm', id: a.id, decision: 'x' }).code).toBe('validation')
+    })
+    it('تلاش ناموفق مکرر قفل می‌شود', () => {
+      for (let i = 0; i < 10; i++) e.p({ action: 'adminMessages', adminToken: 'bad' })
+      expect(e.p({ action: 'adminMessages', adminToken: 'adm' }).code).toBe('rate_limited')
+    })
   })
 })

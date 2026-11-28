@@ -4,14 +4,14 @@
  * Script Properties (Project Settings → Script properties) — هرگز در کد/ریپو نگذارید:
  *   SHEET_ID               (اختیاری؛ پیش‌فرض: اسپردشیت متصل به اسکریپت)
  *   AUTO_APPROVE           'true' → پیام‌ها بدون تأیید دستی نمایش داده شوند (پیش‌فرض false)
- *   ADMIN_TOKEN            برای addCause
+ *   ADMIN_TOKEN            برای addCause و تأیید/رد پیام‌ها (adminMessages/adminModerate)
  *   PAYMENTS_ENABLED       'true' = پرداخت آنلاین روشن (پیش‌فرض خاموش). کلید روشن/خاموش کل پرداخت.
  *   PAYMENT_ENDPOINT       آدرس /start سرویس پرداخت (سرور با IP ایران)
  *   PAYMENT_SHARED_SECRET  راز مشترک با سرویس پرداخت (SHARED_SECRET آن)
  *   MIN_TOMAN / MAX_TOMAN  حدود مبلغ (پیش‌فرض ۱۰٬۰۰۰ تا ۵۰۰٬۰۰۰٬۰۰۰)
  *
  * GET  ?action=messages|stats|causes|cause|myPayments|helpTotal|config
- * POST (text/plain, JSON): postMessage|addSalavat|addCause|startPayment|confirmPayment
+ * POST (text/plain, JSON): postMessage|addSalavat|addCause|startPayment|confirmPayment|adminMessages|adminModerate
  * پاسخ: {ok:true,data} | {ok:false,code,error}
  */
 
@@ -25,9 +25,22 @@ var RATE = { // {max, windowSec}
   startPayment: { max: 5, windowSec: 600 }
 };
 var SHEETS = {
-  Messages: ['id', 'createdAt', 'name', 'phone', 'message', 'approved', 'clientId'],
+  // approved: 'true' منتشر | 'false' در انتظار تأیید | 'rejected' ردشده. kind: 'preset' | '' (متن آزاد)
+  Messages: ['id', 'createdAt', 'name', 'phone', 'message', 'approved', 'clientId', 'kind'],
   Causes: ['id', 'title', 'description', 'accounts', 'bank', 'online'],
   Payments: ['id', 'createdAt', 'clientId', 'causeId', 'accountId', 'amount', 'status', 'authority', 'refId']
+};
+
+/**
+ * جمله‌های آمادهٔ درد و دل. کلاینت فقط presetId می‌فرستد و متن از اینجا گذاشته می‌شود (جعل متن ممکن نیست)
+ * و بدون تأیید دستی منتشر می‌شود. باید با data/presets.json یکی باشد (tests/codegs.test.ts این را می‌سنجد).
+ */
+var PRESETS = {
+  salam: 'سلام آقا جان، آمده‌ام که کمی با شما درد دل کنم ❤️',
+  shafa: 'آقا جان، شفای مریض‌هایمان را از خدا بخواه 🤲',
+  deltang: 'دلم برای حرمتان خیلی تنگ شده، مرا بطلب 🕊️',
+  gereh: 'یا امام رضا، گره‌های زندگی‌ام را به دست شما می‌سپارم 🤍',
+  shokr: 'شکرت آقا جان که همیشه پناه ما بوده‌ای 🌹'
 };
 
 function ApiErr_(code, message) {
@@ -154,7 +167,7 @@ function listMessages_(p) {
   var all = approvedMessages_();
   var items = all.slice(start, start + limit).map(function (r) {
     // phone و clientId عمداً برنمی‌گردند
-    return { id: String(r[0]), createdAt: String(r[1]), name: readCell_(r[2]), message: readCell_(r[4]) };
+    return { id: String(r[0]), createdAt: String(r[1]), name: readCell_(r[2]), message: readCell_(r[4]), kind: String(r[7]) === 'preset' ? 'preset' : 'text' };
   });
   var next = start + limit;
   return { items: items, nextCursor: next < all.length ? String(next) : null };
@@ -163,16 +176,27 @@ function listMessages_(p) {
 function postMessage_(b) {
   if (b.website) return null; // honeypot: بی‌صدا موفق
   var clientId = validClientId_(b.clientId);
-  var v = validateMessage_(b);
+  var name = clean_(b.name, LIMITS.nameMax);
+  var message, phone = '', approved, kind = '';
+  if (b.presetId !== undefined && b.presetId !== null && b.presetId !== '') {
+    // جملهٔ آماده: متن فقط از سرور؛ هر متنی که کلاینت بفرستد نادیده گرفته می‌شود
+    if (!Object.prototype.hasOwnProperty.call(PRESETS, String(b.presetId))) throw ApiErr_('validation', 'جملهٔ آماده نامعتبر است');
+    message = PRESETS[String(b.presetId)];
+    approved = true;
+    kind = 'preset';
+  } else {
+    var v = validateMessage_(b);
+    message = v.message; name = v.name; phone = v.phone;
+    approved = prop_('AUTO_APPROVE', 'false') === 'true'; // متن آزاد: به‌طور پیش‌فرض نیازمند تأیید مدیر
+  }
   rateLimit_('postMessage', clientId);
-  var approved = prop_('AUTO_APPROVE', 'false') === 'true';
   withLock_(function () {
     sheet_('Messages').appendRow([
-      uid_(), new Date().toISOString(), safeCell_(v.name), safeCell_(v.phone),
-      safeCell_(v.message), approved ? 'true' : 'false', clientId
+      uid_(), new Date().toISOString(), safeCell_(name), safeCell_(phone),
+      safeCell_(message), approved ? 'true' : 'false', clientId, kind
     ]);
   });
-  return null;
+  return { status: approved ? 'published' : 'pending' };
 }
 
 function getStats_() {
@@ -192,6 +216,50 @@ function addSalavat_(b) {
     props.setProperty('SALAVAT', String(Number(props.getProperty('SALAVAT') || 0) + count));
   });
   return getStats_();
+}
+
+/* ---------- مدیریت پیام‌ها (فقط با ADMIN_TOKEN) ---------- */
+
+function adminAuth_(b) {
+  var token = prop_('ADMIN_TOKEN', '');
+  var cache = CacheService.getScriptCache();
+  var fails = Number(cache.get('adminFail') || 0);
+  if (fails >= 10) throw ApiErr_('rate_limited', 'تلاش‌های ناموفق زیاد است؛ کمی بعد دوباره تلاش کنید');
+  if (!token || b.adminToken !== token) {
+    cache.put('adminFail', String(fails + 1), 600);
+    throw ApiErr_('server', 'مجاز نیست');
+  }
+}
+
+/** پیام‌های منتظر تأیید (قدیمی‌ترین اول). phone عمداً برنمی‌گردد. */
+function adminMessages_(b) {
+  adminAuth_(b);
+  var items = [];
+  rows_('Messages').forEach(function (r) {
+    if (String(r[5]).toLowerCase() !== 'false') return;
+    items.push({ id: String(r[0]), createdAt: String(r[1]), name: readCell_(r[2]), message: readCell_(r[4]) });
+  });
+  return { items: items.slice(0, 100), total: items.length };
+}
+
+function adminModerate_(b) {
+  adminAuth_(b);
+  var status = b.decision === 'approve' ? 'true' : b.decision === 'reject' ? 'rejected' : '';
+  if (!status) throw ApiErr_('validation', 'decision نامعتبر');
+  var id = String(b.id || '');
+  if (!id) throw ApiErr_('validation', 'id لازم است');
+  withLock_(function () {
+    var sh = sheet_('Messages');
+    var rs = rows_('Messages');
+    for (var i = 0; i < rs.length; i++) {
+      if (String(rs[i][0]) !== id) continue;
+      if (String(rs[i][5]).toLowerCase() !== 'false') throw ApiErr_('validation', 'این پیام قبلاً بررسی شده');
+      sh.getRange(i + 2, 6).setValue(status);
+      return;
+    }
+    throw ApiErr_('not_found', 'پیام پیدا نشد');
+  });
+  return null;
 }
 
 /* ---------- help (همیاری) ---------- */
@@ -422,6 +490,8 @@ function doPost(e) {
       case 'postMessage': return postMessage_(b);
       case 'addSalavat': return addSalavat_(b);
       case 'addCause': return addCause_(b);
+      case 'adminMessages': return adminMessages_(b);
+      case 'adminModerate': return adminModerate_(b);
       case 'startPayment': return startPayment_(b);
       case 'confirmPayment': return confirmPayment_(b);
       default: throw ApiErr_('validation', 'action نامعتبر');

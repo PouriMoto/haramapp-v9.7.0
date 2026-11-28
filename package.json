@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.9.0",
   "license": "PolyForm-Noncommercial-1.0.0",
-  "description": "Haram Razavi — Persian static web app (prayers, spiritual music, messages, charity cards)",
+  "description": "Haram Eshgh — Persian static web app (prayers, spiritual music, messages, charity cards)",
   "engines": {
     "node": ">=22"
   },

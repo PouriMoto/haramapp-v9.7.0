@@ -3,14 +3,15 @@ import { validateCausesCore } from '../../scripts/lib/causesCore.mjs'
 import { Sheet } from '../components/Sheet'
 import { pageUrl } from '../lib/share'
 import { KIND_ORDER, KINDS, type KindDef } from './fields'
-import type { CommitInfo, Github, RunInfo } from './github'
+import type { AdminBackend, CommitInfo, RunInfo } from './github'
 import { resizeToWebp } from './image'
 import { ItemEditor, type EditorCtx } from './ItemEditor'
+import { MessagesTab } from './MessagesTab'
 import {
   DEFAULT_CATEGORIES, linesToList, listOf, moveItem, replaceList, serialize, validateContentDoc, type Doc, type Item, type Kind,
 } from './model'
 
-type Tab = Kind | 'settings' | 'history'
+type Tab = Kind | 'messages' | 'settings' | 'history'
 type Pub = { phase: 'idle' | 'working' | 'watching' | 'done' | 'failed'; text: string; url?: string; errors?: string[] }
 interface Editing { def: KindDef; index: number; item: Item; text: string }
 interface TextEntry { base: string | null; text: string }
@@ -20,7 +21,8 @@ const CAUSES_PATH = 'data/causes.json'
 const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 const labelOf = (def: KindDef) => def.label
 
-export function Dashboard({ gh, onLock, onLogout }: { gh: Github | null; onLock(): void; onLogout(): void }) {
+export function Dashboard({ gh, onLock, onLogout }: { gh: AdminBackend | null; onLock?(): void; onLogout?(): void }) {
+  const local = gh?.mode === 'local'
   const [load, setLoad] = useState<'idle' | 'loading' | 'ready' | 'error'>('idle')
   const [loadError, setLoadError] = useState('')
   const [content, setContent] = useState<Doc | null>(null)
@@ -184,6 +186,13 @@ export function Dashboard({ gh, onLock, onLogout }: { gh: Github | null; onLock(
       setTexts((t) => Object.fromEntries(Object.entries(t).map(([id, e]) => [id, { base: e.text, text: e.text }])))
       setDeletedTexts([])
       setUploads({})
+      if (gh.mode === 'local') {
+        const r = gh.lastPush
+        setPub(r?.pushed
+          ? { phase: 'done', text: '✔ در فایل‌های همین کامپیوتر ذخیره، commit و به GitHub push شد. ساخت و انتشار سایت چند دقیقه طول می‌کشد (وضعیت: GitHub → Actions).' }
+          : { phase: 'failed', text: `ذخیره و commit محلی انجام شد ولی push نشد؛ بعداً در پوشهٔ پروژه «git push» بزنید.${r?.error ? ` (${r.error})` : ''}` })
+        return
+      }
       await watch(sha)
     } catch (e) {
       setPub({ phase: 'failed', text: e instanceof Error ? e.message : 'انتشار انجام نشد' })
@@ -219,8 +228,8 @@ export function Dashboard({ gh, onLock, onLogout }: { gh: Github | null; onLock(
     <div className="adm-note"><p className="field-err" role="alert">{loadError}</p><button type="button" className="btn" onClick={() => setLoad('idle')}>تلاش دوباره</button></div>
   )
 
-  const tabs: { id: Tab; label: string }[] = [...KIND_ORDER.map((k) => ({ id: k as Tab, label: labelOf(KINDS[k]) })), { id: 'settings', label: 'تنظیمات' }, { id: 'history', label: 'تاریخچه' }]
-  const def = tab !== 'settings' && tab !== 'history' ? KINDS[tab] : null
+  const tabs: { id: Tab; label: string }[] = [...KIND_ORDER.map((k) => ({ id: k as Tab, label: labelOf(KINDS[k]) })), { id: 'messages', label: 'درد و دل‌ها' }, { id: 'settings', label: 'تنظیمات' }, { id: 'history', label: 'تاریخچه' }]
+  const def = tab !== 'settings' && tab !== 'history' && tab !== 'messages' ? KINDS[tab] : null
   const list = def ? listOf(docOf(def), def.listKey) : []
   const needle = q.trim().toLowerCase()
   const hostsText = content && Array.isArray(content.allowedHosts) ? (content.allowedHosts as string[]).join('\n') : ''
@@ -228,11 +237,13 @@ export function Dashboard({ gh, onLock, onLogout }: { gh: Github | null; onLock(
   return (
     <div className="adm-dash">
       <header className="adm-top">
-        <h1>داشبورد مدیر</h1>
-        <div className="adm-top__btns">
-          <button type="button" className="btn btn--outline" onClick={onLock}>قفل</button>
-          <button type="button" className="btn btn--outline" onClick={() => { if (!dirty || window.confirm('تغییرات منتشرنشده از بین می‌رود. خروج؟')) onLogout() }}>خروج</button>
-        </div>
+        <h1>داشبورد مدیر{local && <small className="muted"> — حالت محلی (dev)</small>}</h1>
+        {onLock && onLogout && (
+          <div className="adm-top__btns">
+            <button type="button" className="btn btn--outline" onClick={onLock}>قفل</button>
+            <button type="button" className="btn btn--outline" onClick={() => { if (!dirty || window.confirm('تغییرات منتشرنشده از بین می‌رود. خروج؟')) onLogout() }}>خروج</button>
+          </div>
+        )}
       </header>
 
       <nav className="adm-tabs" aria-label="بخش‌ها">
@@ -269,6 +280,8 @@ export function Dashboard({ gh, onLock, onLogout }: { gh: Github | null; onLock(
           {def.file === 'content' && <p className="muted adm-hint">ترتیب فهرست همان ترتیب نمایش در اپ است (بالاترین = اول)؛ آیتم «همیشه اول» جلوتر می‌آید.</p>}
         </section>
       )}
+
+      {tab === 'messages' && <MessagesTab />}
 
       {tab === 'settings' && content && (
         <section className="adm-form">
@@ -308,7 +321,7 @@ export function Dashboard({ gh, onLock, onLogout }: { gh: Github | null; onLock(
 
       {(dirty || pub.phase !== 'idle') && (
         <footer className="adm-publish" aria-live="polite">
-          {dirty && <p><strong>{dirtyCount} مورد منتشرنشده</strong> (پیش‌نویس فقط روی همین دستگاه است)</p>}
+          {dirty && <p><strong>{dirtyCount} مورد منتشرنشده</strong> ({local ? 'با «انتشار» روی فایل‌های همین کامپیوتر نوشته، commit و push می‌شود' : 'پیش‌نویس فقط روی همین دستگاه است'})</p>}
           {pub.text && <p className={pub.phase === 'failed' ? 'field-err' : ''}>{pub.text}{pub.url && <> <a href={pub.url} target="_blank" rel="noopener noreferrer">مشاهده</a></>}</p>}
           {pub.errors && <ul className="field-err">{pub.errors.map((e) => <li key={e}>{e}</li>)}</ul>}
           {dirty && (

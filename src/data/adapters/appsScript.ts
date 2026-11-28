@@ -1,4 +1,4 @@
-import type { Cause, CauseAccount, CausesFile } from '../types'
+import type { Cause, CauseAccount, CausesFile, PostMessageResult } from '../types'
 import type { Api, HelpApi } from '../contract'
 import { ApiError } from '../errors'
 import { visibleCauses } from '../causeList'
@@ -57,7 +57,12 @@ export function createAppsScriptApi(baseUrl: string, clientId: () => string): Ap
   return {
     listMessages: ({ cursor, limit }) => t.get({ action: 'messages', cursor, limit }),
     postMessage: async (i) => {
-      await t.post<unknown>({ action: 'postMessage', clientId: clientId(), ...i })
+      // جملهٔ آماده: فقط شناسه می‌رود (متن از سرور)؛ متن آزاد همیشه در انتظار تأیید می‌ماند
+      const body = i.presetId
+        ? { presetId: i.presetId, name: i.name, website: i.website }
+        : { message: i.message, name: i.name, phone: i.phone, website: i.website }
+      const r = await t.post<PostMessageResult | null>({ action: 'postMessage', clientId: clientId(), ...body })
+      return r?.status === 'published' ? { status: 'published' } : { status: i.presetId ? 'published' : 'pending' }
     },
     getStats: () => t.get({ action: 'stats' }),
     addSalavat: (count = 1) => t.post({ action: 'addSalavat', clientId: clientId(), count }),

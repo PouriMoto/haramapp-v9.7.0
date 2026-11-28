@@ -32,6 +32,8 @@ export const env = Object.freeze({
   mediaBaseUrl: cleanUrl(raw.VITE_MEDIA_BASE_URL) || cleanUrl(`${raw.BASE_URL}content`),
   homeLimit: positiveInt(raw.VITE_HOME_LIMIT ?? String(site.homeLimit ?? ''), 3),
   basePath: import.meta.env.BASE_URL,
+  // فقط در `npm run dev`: داشبورد /admin بدون توکن و روی فایل‌های همین ریپو کار می‌کند
+  isDev: import.meta.env.DEV === true,
 })
 
 export type Env = typeof env

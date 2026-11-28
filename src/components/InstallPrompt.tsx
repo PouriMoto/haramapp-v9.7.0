@@ -9,7 +9,7 @@ export function InstallPrompt() {
     <div className="install" role="region" aria-label="نصب برنامه">
       <IconDownload size={26} aria-hidden />
       <div className="install__text">
-        <strong>نصب «حرم رضوی» روی گوشی</strong>
+        <strong>نصب «حرم عشق» روی گوشی</strong>
         <span>{mode === 'ios'
           ? 'در Safari دکمهٔ اشتراک‌گذاری را بزنید و «Add to Home Screen» را انتخاب کنید.'
           : 'مثل یک برنامه، سریع‌تر و حتی با اینترنت ضعیف باز می‌شود.'}</span>

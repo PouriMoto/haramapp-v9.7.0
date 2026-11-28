@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
+import { localAdminPlugin } from './scripts/lib/localAdmin.mjs'
 
 // فایل‌های public که در bundle نیستند ولی برای آفلاین/نصب لازم‌اند (فقط اگر وجود داشته باشند)
 const STATIC_PRECACHE = ['favicon.svg', 'manifest.webmanifest', 'icons/icon-192.png']
@@ -74,7 +75,7 @@ const base = resolveBase(process.env, domain)
 
 export default defineConfig({
   base,
-  plugins: [react(), serviceWorkerPlugin(), cnamePlugin()],
+  plugins: [react(), serviceWorkerPlugin(), cnamePlugin(), localAdminPlugin()],
   // با هر build عوض می‌شود؛ کش ذخیره‌شدهٔ نسخهٔ قبل را بی‌اعتبار می‌کند (ساختار داده ممکن است عوض شده باشد)
   define: {
     __BUILD_ID__: JSON.stringify(Date.now().toString(36)),

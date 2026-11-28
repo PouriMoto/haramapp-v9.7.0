@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { env } from '../config/env'
 import { ApiError } from '../data/errors'
+import type { MessagePreset } from '../data/types'
 import { mediaUrl, parseManifest } from './manifest'
 import { activeOccasions, occasionCategories } from './occasion'
 import { activeBanners, categoryCounts, homeSlice, inCategory, sortContent } from './selectors'
@@ -18,6 +19,24 @@ export function useManifest() {
     queryKey: ['manifest'],
     queryFn: async () => parseManifest(await fetchJson(mediaUrl(env.mediaBaseUrl, 'manifest.json'))),
     staleTime: 5 * 60_000,
+  })
+}
+
+/** جمله‌های آمادهٔ درد و دل؛ اگر فایل نبود یا خراب بود فهرست خالی (فقط متن آزاد) */
+export function usePresets() {
+  return useQuery({
+    queryKey: ['presets'],
+    queryFn: async (): Promise<MessagePreset[]> => {
+      try {
+        const j = (await fetchJson(mediaUrl(env.mediaBaseUrl, 'presets.json'))) as { presets?: unknown }
+        const list = Array.isArray(j.presets) ? j.presets : []
+        return list.flatMap((p) => {
+          const o = p as { id?: unknown; text?: unknown }
+          return typeof o.id === 'string' && typeof o.text === 'string' && o.text ? [{ id: o.id, text: o.text }] : []
+        })
+      } catch { return [] }
+    },
+    staleTime: 10 * 60_000,
   })
 }
 

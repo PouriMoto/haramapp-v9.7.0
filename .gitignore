@@ -37,5 +37,3 @@ dist-ssr
 *.tar.gz
 .env.*.local
 
-# داشبورد مدیریت محلی (فقط روی کامپیوتر مالک)
-/dashboard/

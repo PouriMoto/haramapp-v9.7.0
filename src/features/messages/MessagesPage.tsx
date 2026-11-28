@@ -9,6 +9,7 @@ import { useStats } from '../../data/hooks/useStats'
 
 const BANNER_EVERY = 20
 const dateFmt = new Intl.DateTimeFormat('fa-IR', { dateStyle: 'medium' })
+const initialOf = (name: string) => Array.from(name.trim())[0] ?? '🕊️'
 const formatDate = (iso: string) => {
   const d = new Date(iso)
   return Number.isNaN(d.getTime()) ? '' : dateFmt.format(d)
@@ -35,8 +36,12 @@ export function MessagesPage() {
             return (
               <Fragment key={m.id}>
                 <li className="msg">
-                  <p className="msg__text">{m.message}</p>
-                  <p className="msg__meta">{m.name || 'ناشناس'}{formatDate(m.createdAt) && ` · ${formatDate(m.createdAt)}`}</p>
+                  <span className="msg__avatar" aria-hidden>{initialOf(m.name)}</span>
+                  <div className="msg__body">
+                    <p className="msg__name">{m.name || 'ناشناس'}</p>
+                    <p className={m.kind === 'preset' ? 'msg__bubble msg__bubble--preset' : 'msg__bubble'}>{m.message}</p>
+                    {formatDate(m.createdAt) && <p className="msg__meta">{formatDate(m.createdAt)}</p>}
+                  </div>
                 </li>
                 {banner && <li className="banner--inline"><Banner banner={banner} /></li>}
               </Fragment>

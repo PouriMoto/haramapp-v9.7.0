@@ -3,6 +3,7 @@ import { ApiError } from '../errors'
 import type { Message, Page, Stats } from '../types'
 import { validateMessage } from '../validation'
 
+const MOCK_PRESETS: Record<string, string> = { salam: 'سلام آقا جان، آمده‌ام که کمی با شما درد دل کنم ❤️', shafa: 'آقا جان، شفای مریض‌هایمان را از خدا بخواه 🤲', deltang: 'دلم برای حرمتان خیلی تنگ شده، مرا بطلب 🕊️' }
 const delay = (ms = 120) => new Promise<void>((r) => setTimeout(r, ms))
 
 function seed(): Message[] {
@@ -31,8 +32,17 @@ export function createMockApi(opts: { latencyMs?: number } = {}): Api {
     },
     async postMessage(i) {
       await wait()
-      if (i.website) return // honeypot: بی‌صدا نادیده
-      validateMessage(i) // مثل سرور واقعی: پیام تا تأیید دیده نمی‌شود، پس به لیست اضافه نمی‌شود
+      if (i.website) return { status: 'pending' } // honeypot: بی‌صدا نادیده
+      if (i.presetId) {
+        // مثل سرور واقعی: متن از شناسه می‌آید و فوراً منتشر می‌شود
+        const text = MOCK_PRESETS[i.presetId]
+        if (!text) throw new ApiError('validation', 'جملهٔ آماده نامعتبر است')
+        messages.unshift({ id: `m${messages.length + 1}`, name: (i.name ?? '').trim(), message: text, createdAt: new Date().toISOString(), kind: 'preset' })
+        stats.messages = messages.length
+        return { status: 'published' }
+      }
+      validateMessage(i) // مثل سرور واقعی: متن آزاد تا تأیید دیده نمی‌شود، پس به لیست اضافه نمی‌شود
+      return { status: 'pending' }
     },
     async getStats() {
       await wait()

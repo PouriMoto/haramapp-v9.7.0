@@ -42,6 +42,17 @@ export interface RunInfo {
   headSha: string
 }
 
+/** آنچه داشبورد از «پشتیبان» می‌خواهد: GitHub (با توکن) یا محلی (فقط dev، بدون توکن) */
+export interface AdminBackend {
+  mode: 'github' | 'local'
+  getText(path: string, at?: string): Promise<{ text: string; sha: string } | null>
+  commit(changes: FileChange[], message: string): Promise<string>
+  history(limit?: number): Promise<CommitInfo[]>
+  runFor(sha: string): Promise<RunInfo | null>
+  /** فقط محلی: نتیجهٔ push آخرین commit */
+  lastPush?: { pushed: boolean; error?: string }
+}
+
 type Fetch = typeof fetch
 
 const decodeUtf8 = (b64: string): string => {
@@ -83,6 +94,7 @@ export function createGithub(ref: RepoRef, token: string, fetchImpl: Fetch = (..
   const enc = (p: string) => p.split('/').map(encodeURIComponent).join('/')
 
   return {
+    mode: 'github' as const,
     /** بررسی توکن: ریپو در دسترس و حق نوشتن (push) دارد؟ */
     async check(): Promise<{ fullName: string; canPush: boolean }> {
       const r = await api<{ full_name: string; permissions?: { push?: boolean } }>('')
