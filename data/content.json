@@ -267,12 +267,13 @@
   "music": [
     {
       "title": "مولودی میلاد حضرت زهرا (س)",
-      "src": "https://evanmu.musitraf.ir/music/1403/09/27/rasoli%20-%20molodi-fateme01.mp3?src=evanmu",
+      "src": "https://evanmu.musitraf.ir/music/1403/09/27/rasoli%20-%20molodi-fateme01.mp3",
       "artist": "مهدی رسولی",
       "categories": [
         "mother-day"
       ],
-      "cover": "https://bahariran.com/wp-content/uploads/2018/03/image003.png"
+      "cover": "https://bahariran.com/wp-content/uploads/2018/03/image003.png",
+      "pinned": true
     },
     {
       "title": "وقتی برای اولین بار ملائکه مدحشو گفتن - ولادت حضرت زهرا (س)",
@@ -286,7 +287,7 @@
     {
       "title": "مولودی ولادت حضرت فاطمه الزهرا  (س)",
       "artist": "سید طالع باکویی",
-      "src": "https://evanmu.musitraf.ir/music/1400/10/ya%20zahra.mp3?src=evanmu",
+      "src": "https://evanmu.musitraf.ir/music/1400/10/ya%20zahra.mp3",
       "cover": "https://bahariran.com/wp-content/uploads/2018/03/image003.png",
       "categories": [
         "mother-day"
@@ -350,14 +351,6 @@
   ],
   "videos": [
     {
-      "title": "صلوات خاصه امام رضا (ع)",
-      "aparat": "ckn3o4e",
-      "poster": "https://static.ahlolbait.com/files/ahlolbait/old/12/image/salavate-khaseh.jpg",
-      "categories": [
-        "other"
-      ]
-    },
-    {
       "title": "روز مادر",
       "aparat": "krh2a91",
       "categories": [
@@ -372,6 +365,14 @@
       "poster": "https://static.cdn.asset.aparat.com/avt/56590284-3769-l__3289.jpg?width=900&quality=90&secret=I7DOyCLqwI2_zMinYw_7DQ",
       "categories": [
         "mother-day"
+      ]
+    },
+    {
+      "title": "صلوات خاصه امام رضا (ع)",
+      "aparat": "ckn3o4e",
+      "poster": "https://static.ahlolbait.com/files/ahlolbait/old/12/image/salavate-khaseh.jpg",
+      "categories": [
+        "other"
       ]
     },
     {
@@ -406,7 +407,7 @@
       "placement": "both",
       "enabled": true,
       "title": "روز مادر",
-      "sponsor": "فاطمه زهرا (س)",
+      "sponsor": "مادر",
       "image": "https://static.cdn.asset.aparat.com/avt/74335022-2340-l__9295.jpg?width=900&quality=90&secret=7Bss_movC-CQc066OeLmWA",
       "alt": "کودک در آغوش مادر",
       "target": {
